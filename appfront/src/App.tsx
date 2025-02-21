@@ -1,51 +1,25 @@
-// App.tsx
-import React, { useState, useEffect } from 'react';
-import ReservacionFormulario from './components/ReservacionFormulario';
-import ListaReservacion from './components/ListaReservacion';
-
-// Definición de interfaces para tipar las reservas y el servicio asociado
-interface Servicio {
-  id: number;
-  nombre: string;
-  precio: number;
-  duracion: string; // Puede representarse como string (ej. "00:30:00")
-}
-
-export interface Reservation {
-  id: number;
-  cliente: string;
-  fecha: string; // Se espera una fecha en formato ISO (YYYY-MM-DD)
-  turno: number;
-  servicio: Servicio;
-}
+import React, { useState } from 'react';
+import ReservaFormulario from './components/ReservacionFormulario';
+import ListadoReservas from './components/ListaReservacion';
 
 const App: React.FC = () => {
-  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [reservasActualizadas, setReservasActualizadas] = useState<boolean>(false);
 
-  // Función para obtener las reservas desde la API
-  const fetchReservations = async () => {
-    try {
-      const response = await fetch('/api/reservas');
-      if (!response.ok) {
-        throw new Error('Error al obtener reservas');
-      }
-      const data: Reservation[] = await response.json();
-      setReservations(data);
-    } catch (error) {
-      console.error('Error fetching reservations:', error);
-    }
+  const handleReservaCreada = () => {
+    setReservasActualizadas(!reservasActualizadas);
   };
 
-  useEffect(() => {
-    fetchReservations();
-  }, []);
-
   return (
-    <div className="container">
-      <h1>Gestión de Reservas - Peluquería</h1>
-      {/* Se pasa la función para refrescar la lista cuando se crea una nueva reserva */}
-      <ReservacionFormulario onReservationCreated={fetchReservations} />
-      <ListaReservacion reservations={reservations} />
+    <div className="bg-light min-vh-100 d-flex flex-column justify-content-center">
+      <h1 className="titulo text-center mb-4">Gestión de Reservas - Peluquería</h1>
+
+      <div className="container bg-white p-4 rounded shadow">
+        <ReservaFormulario onReservaCreada={handleReservaCreada} />
+      </div>
+
+      <div className="container mt-4">
+        <ListadoReservas key={reservasActualizadas ? 'actualizado' : 'inicial'} />
+      </div>
     </div>
   );
 };

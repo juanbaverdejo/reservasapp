@@ -1,161 +1,147 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import React, { useState, useEffect } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-// Interfaces para tipar el servicio y el objeto de reserva que se enviará al backend
-interface Service {
+interface Servicio {
   id: number;
   nombre: string;
   precio: number;
-  duracion: string; // Por ejemplo: "00:30:00"
+  duracion: {
+    ticks: number;
+  };
 }
 
 interface ReservaRequest {
-  Cliente: string;
-  ServicioId: number;
-  Fecha: string; // Se espera formato YYYY-MM-DD
-  Turno: number;
+  cliente: string;
+  servicioId: number;
+  fecha: string;
+  horario: number;
 }
 
-interface ReservationFormProps {
-  onReservationCreated: () => void;
+interface ReservaFormularioProps {
+  onReservaCreada: () => void;
 }
 
-const ReservacionFormulario: React.FC<ReservationFormProps> = ({ onReservationCreated }) => {
-  const [services, setServices] = useState<Service[]>([]);
-  const [availableTurnos, setAvailableTurnos] = useState<number[]>([]);
-  
+const ReservaFormulario: React.FC<ReservaFormularioProps> = ({ onReservaCreada }) => {
+  const [servicios, setServicios] = useState<Servicio[]>([]);
   const [cliente, setCliente] = useState<string>('');
-  const [servicioId, setServicioId] = useState<string>('');
+  const [servicioId, setServicioId] = useState<number | null>(null);
   const [fecha, setFecha] = useState<string>('');
-  const [turno, setTurno] = useState<string>('');
-  const [message, setMessage] = useState<string>('');
+  const [horario, setHorario] = useState<string>('');
+  const [mensaje, setMensaje] = useState<string>('');
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchServicios = async () => {
       try {
-        const res = await fetch('/api/servicios');
+        const res = await fetch('http://localhost:5029/api/servicios');
         if (!res.ok) {
-          throw new Error('Error al obtener servicios');
+          throw new Error(`Error: ${res.status} ${res.statusText}`);
         }
         const data = await res.json();
-        setServices(data);
+        setServicios(data);
       } catch (error) {
-        console.error('Error fetching services:', error);
+        console.error('Error fetching servicios:', error);
+        setMensaje('Error al cargar los servicios.');
       }
     };
 
-    fetchServices();
+    fetchServicios();
   }, []);
 
-  const fetchAvailableTurnos = async (selectedDate: string) => {
-    try {
-      const res = await fetch(`/api/horarios/disponibles?fecha=${selectedDate}`);
-      if (!res.ok) {
-        throw new Error('Error al obtener turnos disponibles');
-      }
-      const data = await res.json();
-      setAvailableTurnos(data);
-    } catch (error) {
-      console.error('Error fetching available turnos:', error);
-    }
-  };
-
-  const handleFechaChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value;
-    setFecha(selectedDate);
-    fetchAvailableTurnos(selectedDate);
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!cliente || !servicioId || !fecha || !turno) {
-      setMessage('Por favor completa todos los campos.');
+    if (!cliente || servicioId === null || !fecha || !horario) {
+      setMensaje('Por favor completa todos los campos.');
       return;
     }
 
+    const horarioComoInt = parseInt(horario, 10);
+
     const reserva: ReservaRequest = {
-      Cliente: cliente,
-      ServicioId: parseInt(servicioId, 10),
-      Fecha: fecha,
-      Turno: parseInt(turno, 10)
+      cliente,
+      servicioId: servicioId,
+      fecha: new Date(fecha).toISOString(),
+      horario: horarioComoInt,
     };
 
     try {
-      const res = await fetch('/api/reservas', {
+      const res = await fetch('http://localhost:5029/api/Reservas', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(reserva)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reserva),
       });
-      
-      if (res.ok) {
-        const data = await res.json();
-        setMessage('Reserva creada exitosamente.');
-        // Reiniciar los campos del formulario
-        setCliente('');
-        setServicioId('');
-        setFecha('');
-        setTurno('');
-        setAvailableTurnos([]);
-        onReservationCreated();
-      } else {
+
+      if (!res.ok) {
         const errorData = await res.json();
-        setMessage(errorData.message || 'Error al crear la reserva.');
+        setMensaje(errorData.mensaje || 'Error al crear la reserva.');
+        return;
       }
+
+      const data = await res.json();
+      setMensaje(data.mensaje);
+      setCliente('');
+      setServicioId(null);
+      setFecha('');
+      setHorario('');
+      onReservaCreada();
     } catch (error) {
       console.error('Error al crear la reserva:', error);
-      setMessage('Error al crear la reserva.');
+      setMensaje('Error al crear la reserva.');
     }
   };
 
   return (
-    <div className="reservation-form">
+    <div className="container mt-5">
       <h2>Crear Reserva</h2>
-      {message && <p>{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Nombre del Cliente:</label>
-          <input 
-            type="text" 
-            value={cliente} 
-            onChange={(e) => setCliente(e.target.value)} 
+      {mensaje && <div className="alert alert-danger">{mensaje}</div>}
+      <form onSubmit={handleSubmit} className="needs-validation">
+        <div className="mb-3">
+          <label className="form-label">Nombre del Cliente:</label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Nombre del cliente"
+            value={cliente}
+            onChange={(e) => setCliente(e.target.value)}
           />
         </div>
-        <div>
-          <label>Servicio:</label>
-          <select value={servicioId} onChange={(e) => setServicioId(e.target.value)}>
+        <div className="mb-3">
+          <label className="form-label">Servicio:</label>
+          <select
+            className="form-select"
+            value={servicioId !== null ? servicioId : ''}
+            onChange={(e) => setServicioId(e.target.value ? Number(e.target.value) : null)}
+          >
             <option value="">Seleccione un servicio</option>
-            {services.map((service) => (
-              <option key={service.id} value={service.id}>
-                {service.nombre}
+            {servicios.map((servicio) => (
+              <option key={servicio.id} value={servicio.id}>
+                {servicio.nombre} - ${servicio.precio} ({servicio.duracion.ticks})
               </option>
             ))}
           </select>
         </div>
-        <div>
-          <label>Fecha:</label>
-          <input 
-            type="date" 
-            value={fecha} 
-            onChange={handleFechaChange} 
+        <div className="mb-3">
+          <label className="form-label">Fecha:</label>
+          <input
+            type="date"
+            className="form-control"
+            value={fecha}
+            onChange={(e) => setFecha(e.target.value)}
           />
         </div>
-        <div>
-          <label>Turno:</label>
-          <select value={turno} onChange={(e) => setTurno(e.target.value)}>
-            <option value="">Seleccione un turno</option>
-            {availableTurnos.map((t) => (
-              <option key={t} value={t}>
-                {t}:00 hs
-              </option>
-            ))}
-          </select>
+        <div className="mb-3">
+          <label className="form-label">Horario:</label>
+          <input
+            type="time"
+            className="form-control"
+            value={horario}
+            onChange={(e) => setHorario(e.target.value)}
+          />
         </div>
-        <button type="submit">Reservar</button>
+        <button type="submit" className="btn btn-primary">Reservar</button>
       </form>
     </div>
   );
 };
 
-export default ReservacionFormulario;
+export default ReservaFormulario;

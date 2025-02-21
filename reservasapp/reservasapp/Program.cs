@@ -4,23 +4,29 @@ using reservasapp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(opciones => opciones.UseSqlServer(builder.Configuration.GetConnectionString("ConexionSql")));
 
-var app = builder.Build();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+});
+builder.Services.AddControllers();
 
-// Configure the HTTP request pipeline.
+var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAll");
 
 app.UseAuthorization();
 
@@ -36,14 +42,11 @@ public class ApplicationDbContextSeed
 {
     public static async Task SeedAsync(ApplicationDbContext context)
     {
-        DateTime fechaEspecifica = new DateTime(2027, 12, 30); // 30 de diciembre de 2027
-
-        // Si no hay productos, agregar algunos datos iniciales
         if (!context.Servicio.Any())
         {
             var servicios = new List<Servicio>
             {
-                new Servicio {Nombre = "Peluqueria", Precio = 9000, Duracion=new TimeSpan(1,0,00)},
+                new Servicio {Nombre = "Peluqueria", Precio = 9000, Duracion=60},
             };
 
             await context.Servicio.AddRangeAsync(servicios);

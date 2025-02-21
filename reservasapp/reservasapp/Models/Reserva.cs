@@ -5,11 +5,10 @@ namespace reservasapp.Models
     public class Reserva
     {
         public int Id { get; set; }
-        public string Cliente { get; set; } = string.Empty;
+        public string Cliente { get; set; }
         public int ServicioId { get; set; }
-        public Servicio Servicio { get; set; } = null!;
         public DateTime Fecha { get; set; }
-        public int Turno { get; set; }
+        public int Horario { get; set; }
     }
 
 

@@ -22,29 +22,7 @@ namespace reservasapp.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("HorarioTrabajo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Dia")
-                        .HasColumnType("int");
-
-                    b.Property<int>("HoraFin")
-                        .HasColumnType("int");
-
-                    b.Property<int>("HoraInicio")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("HorarioTrabajo");
-                });
-
-            modelBuilder.Entity("Reserva", b =>
+            modelBuilder.Entity("reservasapp.Models.Reserva", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -54,26 +32,18 @@ namespace reservasapp.Migrations
 
                     b.Property<string>("Cliente")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Horario")
+                        .HasColumnType("int");
+
                     b.Property<int>("ServicioId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Turno")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ServicioId");
-
-                    b.HasIndex("Cliente", "Fecha")
-                        .IsUnique();
-
-                    b.HasIndex("Fecha", "Turno")
-                        .IsUnique();
 
                     b.ToTable("Reserva");
                 });
@@ -86,8 +56,8 @@ namespace reservasapp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<TimeSpan>("Duracion")
-                        .HasColumnType("time");
+                    b.Property<int>("Duracion")
+                        .HasColumnType("int");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -99,22 +69,6 @@ namespace reservasapp.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Servicio");
-                });
-
-            modelBuilder.Entity("Reserva", b =>
-                {
-                    b.HasOne("reservasapp.Models.Servicio", "Servicio")
-                        .WithMany("Reservas")
-                        .HasForeignKey("ServicioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Servicio");
-                });
-
-            modelBuilder.Entity("reservasapp.Models.Servicio", b =>
-                {
-                    b.Navigation("Reservas");
                 });
 #pragma warning restore 612, 618
         }

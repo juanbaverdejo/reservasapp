@@ -18,51 +18,33 @@ public class ReservasController : ControllerBase
     }
 
     [HttpGet]
-    [HttpPost]
-    public async Task<IActionResult> CreateReserva([FromBody] ReservaRequest reservaRequest)
+    public async Task<ActionResult<IEnumerable<Reserva>>> GetReservas()
     {
-        if (string.IsNullOrWhiteSpace(reservaRequest.Cliente))
+        return await _context.Reserva.ToListAsync();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateReserva([FromBody] Reserva reserva)
+    {
+        if (string.IsNullOrWhiteSpace(reserva.Cliente))
             return BadRequest("El nombre del cliente es requerido.");
 
-        var servicio = await _context.Servicio.FindAsync(reservaRequest.ServicioId);
-        if (servicio == null)
-            return BadRequest("El servicio seleccionado no existe.");
+        if (reserva.Fecha == default || reserva.Horario == default)
+            return BadRequest("La fecha y el horario son requeridos.");
 
-        var horarioTrabajo = await _context.HorarioTrabajo
-            .FirstOrDefaultAsync(h => h.Dia == reservaRequest.Fecha.DayOfWeek);
-        if (horarioTrabajo == null)
-            return BadRequest("No hay horarios de trabajo definidos para el día seleccionado.");
-
-        // Validación: que el turno esté dentro del rango permitido
-        if (reservaRequest.Turno < horarioTrabajo.HoraInicio || reservaRequest.Turno > horarioTrabajo.HoraFin)
-            return BadRequest($"El turno debe estar entre {horarioTrabajo.HoraInicio} y {horarioTrabajo.HoraFin}.");
-
-        // Validación: no puede existir una reserva para la misma fecha y turno
         var reservaExistente = await _context.Reserva
-            .FirstOrDefaultAsync(r => r.Fecha.Date == reservaRequest.Fecha.Date &&
-                                      r.Turno == reservaRequest.Turno);
+            .FirstOrDefaultAsync(r => r.Fecha.Date == reserva.Fecha.Date && r.Horario == reserva.Horario);
         if (reservaExistente != null)
-            return BadRequest("Ya existe una reserva para esa fecha y turno.");
+            return BadRequest("Ya existe una reserva para esa fecha y horario.");
 
-        // Validación: el mismo cliente no puede tener 2 reservas en el mismo día
         var reservaMismaFecha = await _context.Reserva
-            .FirstOrDefaultAsync(r => r.Cliente.ToLower() == reservaRequest.Cliente.ToLower() &&
-                                      r.Fecha.Date == reservaRequest.Fecha.Date);
+            .FirstOrDefaultAsync(r => r.Cliente.ToLower() == reserva.Cliente.ToLower() && r.Fecha.Date == reserva.Fecha.Date);
         if (reservaMismaFecha != null)
             return BadRequest("El cliente ya tiene una reserva para este día.");
 
-        var nuevaReserva = new Reserva
-        {
-            Cliente = reservaRequest.Cliente,
-            ServicioId = reservaRequest.ServicioId,
-            Fecha = reservaRequest.Fecha.Date,
-            Turno = reservaRequest.Turno
-        };
-
-        _context.Reserva.Add(nuevaReserva);
+        _context.Reserva.Add(reserva);
         await _context.SaveChangesAsync();
 
-        return Ok(new { mensaje = "Reserva creada exitosamente", reservaId = nuevaReserva.Id });
+        return Ok(new { mensaje = "Reserva creada exitosamente", reservaId = reserva });
     }
-
 }

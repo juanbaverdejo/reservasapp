@@ -1,35 +1,23 @@
 [
   {
-    "ContainingType": "HorariosController",
-    "Method": "GetHorariosDisponibles",
-    "RelativePath": "api/Horarios/disponibles",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "fecha",
-        "Type": "System.DateTime",
-        "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
     "ContainingType": "ReservasController",
-    "Method": "CreateReserva",
+    "Method": "GetReservas",
     "RelativePath": "api/Reservas",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [
+    "Parameters": [],
+    "ReturnTypes": [
       {
-        "Name": "reservaRequest",
-        "Type": "ReservaRequest",
-        "IsRequired": true
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[reservasapp.Models.Reserva, reservasapp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
       }
-    ],
-    "ReturnTypes": []
+    ]
   },
   {
     "ContainingType": "ReservasController",
@@ -40,8 +28,8 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "reservaRequest",
-        "Type": "ReservaRequest",
+        "Name": "reserva",
+        "Type": "reservasapp.Models.Reserva",
         "IsRequired": true
       }
     ],
@@ -55,19 +43,9 @@
     "IsController": true,
     "Order": 0,
     "Parameters": [],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "reservasapp.Controllers.WeatherForecastController",
-    "Method": "Get",
-    "RelativePath": "WeatherForecast",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [],
     "ReturnTypes": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[reservasapp.WeatherForecast, reservasapp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "Type": "System.Collections.Generic.IEnumerable\u00601[[reservasapp.Models.Servicio, reservasapp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "MediaTypes": [
           "text/plain",
           "application/json",
@@ -75,7 +53,6 @@
         ],
         "StatusCode": 200
       }
-    ],
-    "EndpointName": "GetWeatherForecast"
+    ]
   }
 ]

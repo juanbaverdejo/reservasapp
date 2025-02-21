@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using reservasapp.datos;
+using reservasapp.Models;
 using System;
 using System.Threading.Tasks;
 
@@ -16,9 +17,18 @@ public class ServiciosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetServicios()
+    public async Task<ActionResult<IEnumerable<Servicio>>> GetServicios()
     {
-        var servicios = await _context.Servicio.ToListAsync();
-        return Ok(servicios);
+        try
+        {
+            var servicios = await _context.Servicio.ToListAsync();
+            Console.WriteLine("Servicios obtenidos correctamente:", servicios);
+            return servicios;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine("Error al obtener servicios:", ex);
+            return StatusCode(500, "Error interno del servidor");
+        }
     }
 }
